@@ -1,0 +1,3 @@
+C:/Users/52331/OneDrive/Documentos/CETI Colomos/6 Semestre/IA y VA/AStar-Pathfinding-SFML/build/CMakeFiles/AStarPathfinding.dir
+C:/Users/52331/OneDrive/Documentos/CETI Colomos/6 Semestre/IA y VA/AStar-Pathfinding-SFML/build/CMakeFiles/edit_cache.dir
+C:/Users/52331/OneDrive/Documentos/CETI Colomos/6 Semestre/IA y VA/AStar-Pathfinding-SFML/build/CMakeFiles/rebuild_cache.dir
