@@ -32,6 +32,8 @@ int main()
     bool startPlaced = false;
     bool goalPlaced = false;
 
+    bool drawingWalls = false;
+
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
@@ -42,18 +44,37 @@ int main()
                 window.close();
             }
 
-            // Detectar clic del mouse
+            // Teclado
+            if (const auto* keyEvent =
+                    event->getIf<sf::Event::KeyPressed>())
+            {
+                // R -> Reiniciar tablero
+                if (keyEvent->code == sf::Keyboard::Key::R)
+                {
+                    for (int row = 0; row < ROWS; row++)
+                    {
+                        for (int col = 0; col < COLS; col++)
+                        {
+                            grid[row][col] = CellState::Empty;
+                        }
+                    }
+
+                    startPlaced = false;
+                    goalPlaced = false;
+                }
+            }
+
+            // Presionar botón del mouse
             if (const auto* mouseEvent =
                     event->getIf<sf::Event::MouseButtonPressed>())
             {
                 int col = mouseEvent->position.x / CELL_SIZE;
                 int row = mouseEvent->position.y / CELL_SIZE;
 
-                // Verificar que estamos dentro de la cuadrícula
                 if (row >= 0 && row < ROWS &&
                     col >= 0 && col < COLS)
                 {
-                    // Clic izquierdo -> Start
+                    // Izquierdo -> Start
                     if (mouseEvent->button == sf::Mouse::Button::Left)
                     {
                         if (!startPlaced &&
@@ -64,7 +85,7 @@ int main()
                         }
                     }
 
-                    // Clic derecho -> Goal
+                    // Derecho -> Goal
                     if (mouseEvent->button == sf::Mouse::Button::Right)
                     {
                         if (!goalPlaced &&
@@ -72,6 +93,47 @@ int main()
                         {
                             grid[row][col] = CellState::Goal;
                             goalPlaced = true;
+                        }
+                    }
+
+                    // Central -> comenzar a dibujar muros
+                    if (mouseEvent->button == sf::Mouse::Button::Middle)
+                    {
+                        drawingWalls = true;
+
+                        if (grid[row][col] == CellState::Empty)
+                        {
+                            grid[row][col] = CellState::Wall;
+                        }
+                    }
+                }
+            }
+
+            // Soltar botón central
+            if (const auto* mouseEvent =
+                    event->getIf<sf::Event::MouseButtonReleased>())
+            {
+                if (mouseEvent->button == sf::Mouse::Button::Middle)
+                {
+                    drawingWalls = false;
+                }
+            }
+
+            // Arrastrar para dibujar muros
+            if (const auto* moveEvent =
+                    event->getIf<sf::Event::MouseMoved>())
+            {
+                if (drawingWalls)
+                {
+                    int col = moveEvent->position.x / CELL_SIZE;
+                    int row = moveEvent->position.y / CELL_SIZE;
+
+                    if (row >= 0 && row < ROWS &&
+                        col >= 0 && col < COLS)
+                    {
+                        if (grid[row][col] == CellState::Empty)
+                        {
+                            grid[row][col] = CellState::Wall;
                         }
                     }
                 }
@@ -99,7 +161,6 @@ int main()
                     )
                 );
 
-                // Color según el estado de la celda
                 switch (grid[row][col])
                 {
                     case CellState::Empty:
