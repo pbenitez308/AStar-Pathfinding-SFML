@@ -19,7 +19,7 @@ struct Position
     int row;
     int col;
 
-    bool operator==(const Position& other) const
+    bool operator==(const Position &other) const
     {
         return row == other.row &&
                col == other.col;
@@ -45,22 +45,20 @@ class AStar
 {
 public:
     static int heuristic(
-        const Position& current,
-        const Position& goal
-    );
+        const Position &current,
+        const Position &goal);
 
     void begin(
-        std::vector<std::vector<CellState>>& grid,
-        const Position& start,
-        const Position& goal
-    );
+        std::vector<std::vector<CellState>> &grid,
+        const Position &start,
+        const Position &goal);
 
     void step(
-        std::vector<std::vector<CellState>>& grid
-    );
+        std::vector<std::vector<CellState>> &grid);
 
     bool isRunning() const;
     bool pathFound() const;
+    bool hasFinished() const;
 
     void reset();
 
@@ -73,8 +71,8 @@ private:
 
     bool running = false;
     bool found = false;
+    bool finished = false;
 
     void reconstructPath(
-        std::vector<std::vector<CellState>>& grid
-    );
+        std::vector<std::vector<CellState>> &grid);
 };

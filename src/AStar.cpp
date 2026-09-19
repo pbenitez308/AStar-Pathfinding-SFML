@@ -67,6 +67,7 @@ void AStar::begin(
 
     running = true;
     found = false;
+    finished = false;
 }
 
 
@@ -84,6 +85,7 @@ void AStar::step(
     {
         running = false;
         found = false;
+        finished = true;
         return;
     }
 
@@ -128,6 +130,7 @@ void AStar::step(
     {
         found = true;
         running = false;
+        finished = true;
 
         reconstructPath(grid);
 
@@ -257,6 +260,10 @@ bool AStar::pathFound() const
     return found;
 }
 
+bool AStar::hasFinished() const
+{
+    return finished;
+}
 
 void AStar::reset()
 {
@@ -268,4 +275,5 @@ void AStar::reset()
 
     running = false;
     found = false;
+    finished = true;
 }
