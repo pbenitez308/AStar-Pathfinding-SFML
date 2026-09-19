@@ -15,16 +15,17 @@ int main()
 {
     sf::RenderWindow window(
         sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
-        "A* PathFinding"
-    );
+        "A* PathFinding");
 
     std::vector<std::vector<CellState>> grid(
         ROWS,
-        std::vector<CellState>(COLS, CellState::Empty)
-    );
+        std::vector<CellState>(COLS, CellState::Empty));
 
     bool startPlaced = false;
     bool goalPlaced = false;
+
+    Position startPosition{-1, -1};
+    Position goalPosition{-1, -1};
 
     bool drawingWalls = false;
 
@@ -39,7 +40,7 @@ int main()
             }
 
             // Teclado
-            if (const auto* keyEvent =
+            if (const auto *keyEvent =
                     event->getIf<sf::Event::KeyPressed>())
             {
                 // R -> Reiniciar tablero
@@ -55,11 +56,26 @@ int main()
 
                     startPlaced = false;
                     goalPlaced = false;
+
+                    startPosition = {-1, -1};
+                    goalPosition = {-1, -1};
+                }
+
+                // SPACE -> Ejecutar A*
+                if (keyEvent->code == sf::Keyboard::Key::Space)
+                {
+                    if (startPlaced && goalPlaced)
+                    {
+                        AStar::findPath(
+                            grid,
+                            startPosition,
+                            goalPosition);
+                    }
                 }
             }
 
             // Presionar botón del mouse
-            if (const auto* mouseEvent =
+            if (const auto *mouseEvent =
                     event->getIf<sf::Event::MouseButtonPressed>())
             {
                 int col = mouseEvent->position.x / CELL_SIZE;
@@ -75,6 +91,9 @@ int main()
                             grid[row][col] == CellState::Empty)
                         {
                             grid[row][col] = CellState::Start;
+
+                            startPosition = {row, col};
+
                             startPlaced = true;
                         }
                     }
@@ -86,6 +105,9 @@ int main()
                             grid[row][col] == CellState::Empty)
                         {
                             grid[row][col] = CellState::Goal;
+
+                            goalPosition = {row, col};
+
                             goalPlaced = true;
                         }
                     }
@@ -104,7 +126,7 @@ int main()
             }
 
             // Soltar botón central
-            if (const auto* mouseEvent =
+            if (const auto *mouseEvent =
                     event->getIf<sf::Event::MouseButtonReleased>())
             {
                 if (mouseEvent->button == sf::Mouse::Button::Middle)
@@ -114,7 +136,7 @@ int main()
             }
 
             // Arrastrar para dibujar muros
-            if (const auto* moveEvent =
+            if (const auto *moveEvent =
                     event->getIf<sf::Event::MouseMoved>())
             {
                 if (drawingWalls)
@@ -144,47 +166,43 @@ int main()
                 sf::RectangleShape cell(
                     sf::Vector2f(
                         static_cast<float>(CELL_SIZE - 1),
-                        static_cast<float>(CELL_SIZE - 1)
-                    )
-                );
+                        static_cast<float>(CELL_SIZE - 1)));
 
                 cell.setPosition(
                     sf::Vector2f(
                         static_cast<float>(col * CELL_SIZE),
-                        static_cast<float>(row * CELL_SIZE)
-                    )
-                );
+                        static_cast<float>(row * CELL_SIZE)));
 
                 switch (grid[row][col])
                 {
-                    case CellState::Empty:
-                        cell.setFillColor(sf::Color(50, 50, 50));
-                        break;
+                case CellState::Empty:
+                    cell.setFillColor(sf::Color(50, 50, 50));
+                    break;
 
-                    case CellState::Start:
-                        cell.setFillColor(sf::Color::Green);
-                        break;
+                case CellState::Start:
+                    cell.setFillColor(sf::Color::Green);
+                    break;
 
-                    case CellState::Goal:
-                        cell.setFillColor(sf::Color::Red);
-                        break;
+                case CellState::Goal:
+                    cell.setFillColor(sf::Color::Red);
+                    break;
 
-                    case CellState::Wall:
-                        cell.setFillColor(sf::Color::Black);
-                        break;
+                case CellState::Wall:
+                    cell.setFillColor(sf::Color::Black);
+                    break;
 
-                    case CellState::Open:
-                        cell.setFillColor(sf::Color(0, 150, 255));
-                        break;
+                case CellState::Open:
+                    cell.setFillColor(sf::Color(0, 150, 255));
+                    break;
 
-                    case CellState::Closed:
-                        cell.setFillColor(sf::Color(100, 100, 255));
-                        break;
+                case CellState::Closed:
+                    cell.setFillColor(sf::Color(100, 100, 255));
+                    break;
 
-                    case CellState::Path:
-                        cell.setFillColor(sf::Color::Yellow);
-                        break;
-                    }
+                case CellState::Path:
+                    cell.setFillColor(sf::Color::Yellow);
+                    break;
+                }
 
                 window.draw(cell);
             }

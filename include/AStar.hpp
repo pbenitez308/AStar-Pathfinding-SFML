@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <limits>
 
-// Estado visual/lógico de cada celda
 enum class CellState
 {
     Empty,
@@ -14,7 +14,6 @@ enum class CellState
     Path
 };
 
-// Posición dentro de la matriz
 struct Position
 {
     int row;
@@ -22,38 +21,38 @@ struct Position
 
     bool operator==(const Position& other) const
     {
-        return row == other.row && col == other.col;
+        return row == other.row &&
+               col == other.col;
     }
 };
 
-// Información utilizada por A*
 struct Node
 {
-    Position position;
+    Position position{-1, -1};
 
-    int g;  // Costo desde Start
-    int h;  // Heurística hasta Goal
-    int f;  // g + h
+    int g = std::numeric_limits<int>::max();
+    int h = 0;
+    int f = std::numeric_limits<int>::max();
 
-    Position parent;
-    bool hasParent;
+    Position parent{-1, -1};
 
-    Node()
-        : position{-1, -1},
-          g(0),
-          h(0),
-          f(0),
-          parent{-1, -1},
-          hasParent(false)
-    {
-    }
+    bool hasParent = false;
+    bool inOpen = false;
+    bool closed = false;
 };
 
 class AStar
 {
 public:
+
     static int heuristic(
         const Position& current,
+        const Position& goal
+    );
+
+    static bool findPath(
+        std::vector<std::vector<CellState>>& grid,
+        const Position& start,
         const Position& goal
     );
 };
