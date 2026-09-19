@@ -1,25 +1,88 @@
 #include <SFML/Graphics.hpp>
+
+#include <optional>
 #include <vector>
 
 #include "AStar.hpp"
 
+// ==============================
+// CONFIGURACION DE LA VENTANA
+// ==============================
+
 const int WINDOW_WIDTH = 800;
-const int WINDOW_HEIGHT = 600;
+
+const int GRID_HEIGHT = 600;
+const int UI_HEIGHT = 60;
+
+const int WINDOW_HEIGHT = GRID_HEIGHT + UI_HEIGHT;
 
 const int CELL_SIZE = 40;
 
 const int COLS = WINDOW_WIDTH / CELL_SIZE;
-const int ROWS = WINDOW_HEIGHT / CELL_SIZE;
+const int ROWS = GRID_HEIGHT / CELL_SIZE;
+
 
 int main()
 {
+    // ==============================
+    // VENTANA
+    // ==============================
+
     sf::RenderWindow window(
         sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
-        "A* PathFinding");
+        "A* PathFinding"
+    );
+
+
+    // ==============================
+    // FUENTE E INTERFAZ
+    // ==============================
+
+    sf::Font font("assets/Roboto-Regular.ttf");
+
+
+    sf::Text controlsText(
+        font,
+        "LMB: Start   RMB: Goal   MMB: Walls   SPACE: Run   C: Clear   R: Reset",
+        14
+    );
+
+    controlsText.setPosition({15.f, 8.f});
+
+
+    sf::Text statusText(
+        font,
+        "STATUS: READY",
+        15
+    );
+
+    statusText.setPosition({15.f, 34.f});
+
+
+    // Barra superior
+    sf::RectangleShape uiBar(
+        sf::Vector2f(
+            static_cast<float>(WINDOW_WIDTH),
+            static_cast<float>(UI_HEIGHT)
+        )
+    );
+
+    uiBar.setPosition({0.f, 0.f});
+    uiBar.setFillColor(sf::Color(20, 20, 20));
+
+
+    // ==============================
+    // GRID
+    // ==============================
 
     std::vector<std::vector<CellState>> grid(
         ROWS,
-        std::vector<CellState>(COLS, CellState::Empty));
+        std::vector<CellState>(
+            COLS,
+            CellState::Empty
+        )
+    );
+
 
     bool startPlaced = false;
     bool goalPlaced = false;
@@ -27,28 +90,57 @@ int main()
     Position startPosition{-1, -1};
     Position goalPosition{-1, -1};
 
+
+    // ==============================
+    // MUROS
+    // ==============================
+
     bool drawingWalls = false;
     bool erasingWalls = false;
+
+
+    // ==============================
+    // A*
+    // ==============================
 
     AStar astar;
 
     sf::Clock stepClock;
 
+
+    // ==============================
+    // LOOP PRINCIPAL
+    // ==============================
+
     while (window.isOpen())
     {
+        // ==============================
+        // EVENTOS
+        // ==============================
+
         while (const std::optional event = window.pollEvent())
         {
-            // Cerrar ventana
+            // --------------------------
+            // CERRAR VENTANA
+            // --------------------------
+
             if (event->is<sf::Event::Closed>())
             {
                 window.close();
             }
 
-            // Teclado
-            if (const auto *keyEvent =
+
+            // ==============================
+            // TECLADO
+            // ==============================
+
+            if (const auto* keyEvent =
                     event->getIf<sf::Event::KeyPressed>())
             {
-                // R -> Reiniciar tablero
+                // --------------------------
+                // R -> RESET COMPLETO
+                // --------------------------
+
                 if (keyEvent->code == sf::Keyboard::Key::R)
                 {
                     for (int row = 0; row < ROWS; row++)
@@ -65,35 +157,51 @@ int main()
                     startPosition = {-1, -1};
                     goalPosition = {-1, -1};
 
+                    drawingWalls = false;
+                    erasingWalls = false;
+
                     astar.reset();
                 }
 
-                // SPACE -> Ejecutar A*
+
+                // --------------------------
+                // SPACE -> EJECUTAR A*
+                // --------------------------
+
                 if (keyEvent->code == sf::Keyboard::Key::Space)
                 {
-                    if (startPlaced &&
+                    if (
+                        startPlaced &&
                         goalPlaced &&
-                        !astar.isRunning())
+                        !astar.isRunning()
+                    )
                     {
                         astar.begin(
                             grid,
                             startPosition,
-                            goalPosition);
+                            goalPosition
+                        );
 
                         stepClock.restart();
                     }
                 }
 
-                // C -> Limpiar resultados de la búsqueda
+
+                // --------------------------
+                // C -> LIMPIAR BUSQUEDA
+                // --------------------------
+
                 if (keyEvent->code == sf::Keyboard::Key::C)
                 {
                     for (int row = 0; row < ROWS; row++)
                     {
                         for (int col = 0; col < COLS; col++)
                         {
-                            if (grid[row][col] == CellState::Open ||
+                            if (
+                                grid[row][col] == CellState::Open ||
                                 grid[row][col] == CellState::Closed ||
-                                grid[row][col] == CellState::Path)
+                                grid[row][col] == CellState::Path
+                            )
                             {
                                 grid[row][col] = CellState::Empty;
                             }
@@ -104,106 +212,215 @@ int main()
                 }
             }
 
-            // Presionar botón del mouse
-            if (const auto *mouseEvent =
+
+            // ==============================
+            // MOUSE PRESIONADO
+            // ==============================
+
+            if (const auto* mouseEvent =
                     event->getIf<sf::Event::MouseButtonPressed>())
             {
-                int col = mouseEvent->position.x / CELL_SIZE;
-                int row = mouseEvent->position.y / CELL_SIZE;
-
-                if (row >= 0 && row < ROWS &&
-                    col >= 0 && col < COLS)
+                // No permitimos modificar el tablero
+                // mientras A* esta ejecutandose
+                if (
+                    !astar.isRunning() &&
+                    mouseEvent->position.y >= UI_HEIGHT
+                )
                 {
-                    // Izquierdo -> Start
-                    if (mouseEvent->button == sf::Mouse::Button::Left)
+                    int col =
+                        mouseEvent->position.x /
+                        CELL_SIZE;
+
+                    int row =
+                        (mouseEvent->position.y - UI_HEIGHT) /
+                        CELL_SIZE;
+
+
+                    // Verificar limites
+                    if (
+                        row >= 0 &&
+                        row < ROWS &&
+                        col >= 0 &&
+                        col < COLS
+                    )
                     {
-                        if (!startPlaced &&
-                            grid[row][col] == CellState::Empty)
+                        // --------------------------
+                        // CLICK IZQUIERDO -> START
+                        // --------------------------
+
+                        if (
+                            mouseEvent->button ==
+                            sf::Mouse::Button::Left
+                        )
                         {
-                            grid[row][col] = CellState::Start;
+                            if (
+                                !startPlaced &&
+                                grid[row][col] ==
+                                    CellState::Empty
+                            )
+                            {
+                                grid[row][col] =
+                                    CellState::Start;
 
-                            startPosition = {row, col};
+                                startPosition =
+                                    {row, col};
 
-                            startPlaced = true;
-                        }
-                    }
-
-                    // Derecho -> Goal
-                    if (mouseEvent->button == sf::Mouse::Button::Right)
-                    {
-                        if (!goalPlaced &&
-                            grid[row][col] == CellState::Empty)
-                        {
-                            grid[row][col] = CellState::Goal;
-
-                            goalPosition = {row, col};
-
-                            goalPlaced = true;
-                        }
-                    }
-
-                    // Central -> comenzar a dibujar muros
-                    if (mouseEvent->button == sf::Mouse::Button::Middle)
-                    {
-                        drawingWalls = true;
-
-                        // Si hacemos clic sobre un muro,
-                        // entramos en modo borrar.
-                        if (grid[row][col] == CellState::Wall)
-                        {
-                            erasingWalls = true;
-                            grid[row][col] = CellState::Empty;
+                                startPlaced = true;
+                            }
                         }
 
-                        // Si hacemos clic sobre una celda vacía,
-                        // entramos en modo dibujar.
-                        else if (grid[row][col] == CellState::Empty)
+
+                        // --------------------------
+                        // CLICK DERECHO -> GOAL
+                        // --------------------------
+
+                        if (
+                            mouseEvent->button ==
+                            sf::Mouse::Button::Right
+                        )
                         {
-                            erasingWalls = false;
-                            grid[row][col] = CellState::Wall;
+                            if (
+                                !goalPlaced &&
+                                grid[row][col] ==
+                                    CellState::Empty
+                            )
+                            {
+                                grid[row][col] =
+                                    CellState::Goal;
+
+                                goalPosition =
+                                    {row, col};
+
+                                goalPlaced = true;
+                            }
+                        }
+
+
+                        // --------------------------
+                        // CLICK CENTRAL -> MUROS
+                        // --------------------------
+
+                        if (
+                            mouseEvent->button ==
+                            sf::Mouse::Button::Middle
+                        )
+                        {
+                            // Click sobre muro:
+                            // comenzar a borrar
+                            if (
+                                grid[row][col] ==
+                                CellState::Wall
+                            )
+                            {
+                                drawingWalls = true;
+                                erasingWalls = true;
+
+                                grid[row][col] =
+                                    CellState::Empty;
+                            }
+
+                            // Click sobre espacio vacio:
+                            // comenzar a dibujar
+                            else if (
+                                grid[row][col] ==
+                                CellState::Empty
+                            )
+                            {
+                                drawingWalls = true;
+                                erasingWalls = false;
+
+                                grid[row][col] =
+                                    CellState::Wall;
+                            }
+
+                            // Start, Goal, Path, etc.
+                            // no pueden convertirse en muro
+                            else
+                            {
+                                drawingWalls = false;
+                            }
                         }
                     }
                 }
             }
 
-            // Soltar botón central
-            if (const auto *mouseEvent =
+
+            // ==============================
+            // SOLTAR BOTON CENTRAL
+            // ==============================
+
+            if (const auto* mouseEvent =
                     event->getIf<sf::Event::MouseButtonReleased>())
             {
-                if (mouseEvent->button == sf::Mouse::Button::Middle)
+                if (
+                    mouseEvent->button ==
+                    sf::Mouse::Button::Middle
+                )
                 {
                     drawingWalls = false;
                     erasingWalls = false;
                 }
             }
 
-            // Arrastrar para dibujar muros
-            if (const auto *moveEvent =
+
+            // ==============================
+            // ARRASTRAR MUROS
+            // ==============================
+
+            if (const auto* moveEvent =
                     event->getIf<sf::Event::MouseMoved>())
             {
-                if (drawingWalls)
+                if (
+                    drawingWalls &&
+                    !astar.isRunning() &&
+                    moveEvent->position.y >= UI_HEIGHT
+                )
                 {
-                    int col = moveEvent->position.x / CELL_SIZE;
-                    int row = moveEvent->position.y / CELL_SIZE;
+                    int col =
+                        moveEvent->position.x /
+                        CELL_SIZE;
 
-                    if (row >= 0 && row < ROWS &&
-                        col >= 0 && col < COLS)
+                    int row =
+                        (moveEvent->position.y - UI_HEIGHT) /
+                        CELL_SIZE;
+
+
+                    if (
+                        row >= 0 &&
+                        row < ROWS &&
+                        col >= 0 &&
+                        col < COLS
+                    )
                     {
-                        // Modo borrar
+                        // --------------------------
+                        // MODO BORRAR
+                        // --------------------------
+
                         if (erasingWalls)
                         {
-                            if (grid[row][col] == CellState::Wall)
+                            if (
+                                grid[row][col] ==
+                                CellState::Wall
+                            )
                             {
-                                grid[row][col] = CellState::Empty;
+                                grid[row][col] =
+                                    CellState::Empty;
                             }
                         }
 
-                        // Modo dibujar
+                        // --------------------------
+                        // MODO DIBUJAR
+                        // --------------------------
+
                         else
                         {
-                            if (grid[row][col] == CellState::Empty)
+                            if (
+                                grid[row][col] ==
+                                CellState::Empty
+                            )
                             {
-                                grid[row][col] = CellState::Wall;
+                                grid[row][col] =
+                                    CellState::Wall;
                             }
                         }
                     }
@@ -211,70 +428,165 @@ int main()
             }
         }
 
-        // Ejecutar un paso de A* cada 40 ms
+
+        // ==============================
+        // EJECUTAR A* PASO A PASO
+        // ==============================
+
         if (astar.isRunning())
         {
-            if (stepClock.getElapsedTime().asMilliseconds() >= 40)
+            if (
+                stepClock
+                    .getElapsedTime()
+                    .asMilliseconds() >= 40
+            )
             {
                 astar.step(grid);
+
                 stepClock.restart();
             }
         }
 
-        window.clear(sf::Color(30, 30, 30));
 
-        // Dibujar cuadrícula
+        // ==============================
+        // ACTUALIZAR STATUS
+        // ==============================
+
+        if (astar.isRunning())
+        {
+            statusText.setString(
+                "STATUS: SEARCHING..."
+            );
+        }
+        else if (astar.pathFound())
+        {
+            statusText.setString(
+                "STATUS: PATH FOUND"
+            );
+        }
+        else
+        {
+            statusText.setString(
+                "STATUS: READY"
+            );
+        }
+
+
+        // ==============================
+        // RENDER
+        // ==============================
+
+        window.clear(
+            sf::Color(30, 30, 30)
+        );
+
+
+        // Barra superior
+        window.draw(uiBar);
+
+
+        // ==============================
+        // DIBUJAR CUADRICULA
+        // ==============================
+
         for (int row = 0; row < ROWS; row++)
         {
             for (int col = 0; col < COLS; col++)
             {
                 sf::RectangleShape cell(
                     sf::Vector2f(
-                        static_cast<float>(CELL_SIZE - 1),
-                        static_cast<float>(CELL_SIZE - 1)));
+                        static_cast<float>(
+                            CELL_SIZE - 1
+                        ),
+                        static_cast<float>(
+                            CELL_SIZE - 1
+                        )
+                    )
+                );
 
+
+                // IMPORTANTE:
+                // + UI_HEIGHT mueve el grid
+                // debajo de la barra superior.
                 cell.setPosition(
                     sf::Vector2f(
-                        static_cast<float>(col * CELL_SIZE),
-                        static_cast<float>(row * CELL_SIZE)));
+                        static_cast<float>(
+                            col * CELL_SIZE
+                        ),
+                        static_cast<float>(
+                            row * CELL_SIZE +
+                            UI_HEIGHT
+                        )
+                    )
+                );
+
+
+                // ==============================
+                // COLOR DE CELDA
+                // ==============================
 
                 switch (grid[row][col])
                 {
-                case CellState::Empty:
-                    cell.setFillColor(sf::Color(50, 50, 50));
-                    break;
+                    case CellState::Empty:
+                        cell.setFillColor(
+                            sf::Color(50, 50, 50)
+                        );
+                        break;
 
-                case CellState::Start:
-                    cell.setFillColor(sf::Color::Green);
-                    break;
+                    case CellState::Start:
+                        cell.setFillColor(
+                            sf::Color::Green
+                        );
+                        break;
 
-                case CellState::Goal:
-                    cell.setFillColor(sf::Color::Red);
-                    break;
+                    case CellState::Goal:
+                        cell.setFillColor(
+                            sf::Color::Red
+                        );
+                        break;
 
-                case CellState::Wall:
-                    cell.setFillColor(sf::Color::Black);
-                    break;
+                    case CellState::Wall:
+                        cell.setFillColor(
+                            sf::Color::Black
+                        );
+                        break;
 
-                case CellState::Open:
-                    cell.setFillColor(sf::Color(0, 150, 255));
-                    break;
+                    case CellState::Open:
+                        cell.setFillColor(
+                            sf::Color(0, 150, 255)
+                        );
+                        break;
 
-                case CellState::Closed:
-                    cell.setFillColor(sf::Color(100, 100, 255));
-                    break;
+                    case CellState::Closed:
+                        cell.setFillColor(
+                            sf::Color(100, 100, 255)
+                        );
+                        break;
 
-                case CellState::Path:
-                    cell.setFillColor(sf::Color::Yellow);
-                    break;
+                    case CellState::Path:
+                        cell.setFillColor(
+                            sf::Color::Yellow
+                        );
+                        break;
                 }
+
 
                 window.draw(cell);
             }
         }
 
+
+        // ==============================
+        // TEXTO DE INTERFAZ
+        // ==============================
+
+        window.draw(controlsText);
+        window.draw(statusText);
+
+
         window.display();
     }
+
 
     return 0;
 }
