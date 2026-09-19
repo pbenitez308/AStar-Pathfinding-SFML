@@ -44,15 +44,37 @@ struct Node
 class AStar
 {
 public:
-
     static int heuristic(
         const Position& current,
         const Position& goal
     );
 
-    static bool findPath(
+    void begin(
         std::vector<std::vector<CellState>>& grid,
         const Position& start,
         const Position& goal
+    );
+
+    void step(
+        std::vector<std::vector<CellState>>& grid
+    );
+
+    bool isRunning() const;
+    bool pathFound() const;
+
+    void reset();
+
+private:
+    std::vector<std::vector<Node>> nodes;
+    std::vector<Position> openList;
+
+    Position startPosition{-1, -1};
+    Position goalPosition{-1, -1};
+
+    bool running = false;
+    bool found = false;
+
+    void reconstructPath(
+        std::vector<std::vector<CellState>>& grid
     );
 };

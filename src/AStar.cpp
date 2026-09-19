@@ -1,7 +1,6 @@
 #include "AStar.hpp"
 
 #include <cstdlib>
-#include <vector>
 
 
 int AStar::heuristic(
@@ -14,17 +13,21 @@ int AStar::heuristic(
 }
 
 
-bool AStar::findPath(
+void AStar::begin(
     std::vector<std::vector<CellState>>& grid,
     const Position& start,
     const Position& goal
 )
 {
-    const int rows = static_cast<int>(grid.size());
-    const int cols = static_cast<int>(grid[0].size());
+    reset();
 
+    startPosition = start;
+    goalPosition = goal;
 
-    // Limpiar resultados anteriores de A*
+    int rows = static_cast<int>(grid.size());
+    int cols = static_cast<int>(grid[0].size());
+
+    // Limpiar resultados anteriores
     for (int row = 0; row < rows; row++)
     {
         for (int col = 0; col < cols; col++)
@@ -38,15 +41,12 @@ bool AStar::findPath(
         }
     }
 
-
-    // Crear matriz de nodos
-    std::vector<std::vector<Node>> nodes(
+    // Crear nodos
+    nodes = std::vector<std::vector<Node>>(
         rows,
         std::vector<Node>(cols)
     );
 
-
-    // Guardar posición de cada nodo
     for (int row = 0; row < rows; row++)
     {
         for (int col = 0; col < cols; col++)
@@ -55,196 +55,217 @@ bool AStar::findPath(
         }
     }
 
-
-    // Configurar nodo inicial
-    Node& startNode = nodes[start.row][start.col];
+    Node& startNode =
+        nodes[start.row][start.col];
 
     startNode.g = 0;
     startNode.h = heuristic(start, goal);
     startNode.f = startNode.g + startNode.h;
 
-
-    // Lista de nodos pendientes de explorar
-    std::vector<Position> openList;
-
     openList.push_back(start);
     startNode.inOpen = true;
 
+    running = true;
+    found = false;
+}
 
-    // Movimiento en 4 direcciones
+
+void AStar::step(
+    std::vector<std::vector<CellState>>& grid
+)
+{
+    if (!running)
+    {
+        return;
+    }
+
+    // No existe camino
+    if (openList.empty())
+    {
+        running = false;
+        found = false;
+        return;
+    }
+
+    // Buscar nodo con menor f
+    int bestIndex = 0;
+
+    for (int i = 1;
+         i < static_cast<int>(openList.size());
+         i++)
+    {
+        Position candidatePosition = openList[i];
+        Position bestPosition = openList[bestIndex];
+
+        Node& candidate =
+            nodes[candidatePosition.row][candidatePosition.col];
+
+        Node& best =
+            nodes[bestPosition.row][bestPosition.col];
+
+        if (candidate.f < best.f ||
+            (candidate.f == best.f &&
+             candidate.h < best.h))
+        {
+            bestIndex = i;
+        }
+    }
+
+    Position current = openList[bestIndex];
+
+    openList.erase(
+        openList.begin() + bestIndex
+    );
+
+    Node& currentNode =
+        nodes[current.row][current.col];
+
+    currentNode.inOpen = false;
+    currentNode.closed = true;
+
+    // Llegamos al objetivo
+    if (current == goalPosition)
+    {
+        found = true;
+        running = false;
+
+        reconstructPath(grid);
+
+        return;
+    }
+
+    // Marcar nodo procesado
+    if (!(current == startPosition))
+    {
+        grid[current.row][current.col]
+            = CellState::Closed;
+    }
+
     const int directions[4][2] =
     {
-        {-1, 0},   // arriba
-        { 1, 0},   // abajo
-        { 0,-1},   // izquierda
-        { 0, 1}    // derecha
+        {-1, 0},
+        { 1, 0},
+        { 0,-1},
+        { 0, 1}
     };
 
+    int rows = static_cast<int>(grid.size());
+    int cols = static_cast<int>(grid[0].size());
 
-    while (!openList.empty())
+    // Explorar vecinos
+    for (const auto& direction : directions)
     {
-        // Buscar nodo con menor f
-        int bestIndex = 0;
-
-        for (int i = 1;
-             i < static_cast<int>(openList.size());
-             i++)
+        Position neighbor =
         {
-            Position candidatePos = openList[i];
-            Position bestPos = openList[bestIndex];
+            current.row + direction[0],
+            current.col + direction[1]
+        };
 
-            Node& candidate =
-                nodes[candidatePos.row][candidatePos.col];
-
-            Node& best =
-                nodes[bestPos.row][bestPos.col];
-
-
-            // Menor f es mejor.
-            // Si empatan, menor h.
-            if (candidate.f < best.f ||
-                (candidate.f == best.f &&
-                 candidate.h < best.h))
-            {
-                bestIndex = i;
-            }
+        // Fuera del mapa
+        if (neighbor.row < 0 ||
+            neighbor.row >= rows ||
+            neighbor.col < 0 ||
+            neighbor.col >= cols)
+        {
+            continue;
         }
 
-
-        Position current = openList[bestIndex];
-
-        openList.erase(
-            openList.begin() + bestIndex
-        );
-
-
-        Node& currentNode =
-            nodes[current.row][current.col];
-
-        currentNode.inOpen = false;
-        currentNode.closed = true;
-
-
-        // ¿Llegamos al objetivo?
-        if (current == goal)
+        // Muro
+        if (grid[neighbor.row][neighbor.col]
+            == CellState::Wall)
         {
-            Position currentPath = goal;
-
-
-            // Reconstruir camino hacia Start
-            while (!(currentPath == start))
-            {
-                Node& pathNode =
-                    nodes[currentPath.row][currentPath.col];
-
-                if (!pathNode.hasParent)
-                {
-                    return false;
-                }
-
-                currentPath = pathNode.parent;
-
-
-                if (!(currentPath == start) &&
-                    !(currentPath == goal))
-                {
-                    grid[currentPath.row][currentPath.col]
-                        = CellState::Path;
-                }
-            }
-
-            return true;
+            continue;
         }
 
+        Node& neighborNode =
+            nodes[neighbor.row][neighbor.col];
 
-        // Marcar como cerrado
-        if (!(current == start) &&
-            !(current == goal))
+        if (neighborNode.closed)
         {
-            grid[current.row][current.col]
-                = CellState::Closed;
+            continue;
         }
 
+        int tentativeG =
+            currentNode.g + 1;
 
-        // Revisar vecinos
-        for (const auto& direction : directions)
+        if (tentativeG < neighborNode.g)
         {
-            Position neighbor =
+            neighborNode.parent = current;
+            neighborNode.hasParent = true;
+
+            neighborNode.g = tentativeG;
+            neighborNode.h =
+                heuristic(neighbor, goalPosition);
+
+            neighborNode.f =
+                neighborNode.g +
+                neighborNode.h;
+
+            if (!neighborNode.inOpen)
             {
-                current.row + direction[0],
-                current.col + direction[1]
-            };
+                openList.push_back(neighbor);
+                neighborNode.inOpen = true;
 
-
-            // Límites de la matriz
-            if (neighbor.row < 0 ||
-                neighbor.row >= rows ||
-                neighbor.col < 0 ||
-                neighbor.col >= cols)
-            {
-                continue;
-            }
-
-
-            // Ignorar muros
-            if (grid[neighbor.row][neighbor.col]
-                == CellState::Wall)
-            {
-                continue;
-            }
-
-
-            Node& neighborNode =
-                nodes[neighbor.row][neighbor.col];
-
-
-            // Ignorar nodos ya cerrados
-            if (neighborNode.closed)
-            {
-                continue;
-            }
-
-
-            int tentativeG =
-                currentNode.g + 1;
-
-
-            // ¿Encontramos una ruta mejor?
-            if (tentativeG < neighborNode.g)
-            {
-                neighborNode.parent = current;
-                neighborNode.hasParent = true;
-
-                neighborNode.g = tentativeG;
-
-                neighborNode.h =
-                    heuristic(neighbor, goal);
-
-                neighborNode.f =
-                    neighborNode.g +
-                    neighborNode.h;
-
-
-                // Agregar a Open List
-                if (!neighborNode.inOpen)
+                if (grid[neighbor.row][neighbor.col]
+                    == CellState::Empty)
                 {
-                    openList.push_back(neighbor);
-
-                    neighborNode.inOpen = true;
-
-
-                    if (grid[neighbor.row][neighbor.col]
-                        == CellState::Empty)
-                    {
-                        grid[neighbor.row][neighbor.col]
-                            = CellState::Open;
-                    }
+                    grid[neighbor.row][neighbor.col]
+                        = CellState::Open;
                 }
             }
         }
     }
+}
 
 
-    // No existe camino
-    return false;
+void AStar::reconstructPath(
+    std::vector<std::vector<CellState>>& grid
+)
+{
+    Position current = goalPosition;
+
+    while (!(current == startPosition))
+    {
+        Node& node =
+            nodes[current.row][current.col];
+
+        if (!node.hasParent)
+        {
+            return;
+        }
+
+        current = node.parent;
+
+        if (!(current == startPosition) &&
+            !(current == goalPosition))
+        {
+            grid[current.row][current.col]
+                = CellState::Path;
+        }
+    }
+}
+
+
+bool AStar::isRunning() const
+{
+    return running;
+}
+
+
+bool AStar::pathFound() const
+{
+    return found;
+}
+
+
+void AStar::reset()
+{
+    nodes.clear();
+    openList.clear();
+
+    startPosition = {-1, -1};
+    goalPosition = {-1, -1};
+
+    running = false;
+    found = false;
 }

@@ -28,6 +28,11 @@ int main()
     Position goalPosition{-1, -1};
 
     bool drawingWalls = false;
+    bool erasingWalls = false;
+
+    AStar astar;
+
+    sf::Clock stepClock;
 
     while (window.isOpen())
     {
@@ -59,18 +64,43 @@ int main()
 
                     startPosition = {-1, -1};
                     goalPosition = {-1, -1};
+
+                    astar.reset();
                 }
 
                 // SPACE -> Ejecutar A*
                 if (keyEvent->code == sf::Keyboard::Key::Space)
                 {
-                    if (startPlaced && goalPlaced)
+                    if (startPlaced &&
+                        goalPlaced &&
+                        !astar.isRunning())
                     {
-                        AStar::findPath(
+                        astar.begin(
                             grid,
                             startPosition,
                             goalPosition);
+
+                        stepClock.restart();
                     }
+                }
+
+                // C -> Limpiar resultados de la búsqueda
+                if (keyEvent->code == sf::Keyboard::Key::C)
+                {
+                    for (int row = 0; row < ROWS; row++)
+                    {
+                        for (int col = 0; col < COLS; col++)
+                        {
+                            if (grid[row][col] == CellState::Open ||
+                                grid[row][col] == CellState::Closed ||
+                                grid[row][col] == CellState::Path)
+                            {
+                                grid[row][col] = CellState::Empty;
+                            }
+                        }
+                    }
+
+                    astar.reset();
                 }
             }
 
@@ -117,8 +147,19 @@ int main()
                     {
                         drawingWalls = true;
 
-                        if (grid[row][col] == CellState::Empty)
+                        // Si hacemos clic sobre un muro,
+                        // entramos en modo borrar.
+                        if (grid[row][col] == CellState::Wall)
                         {
+                            erasingWalls = true;
+                            grid[row][col] = CellState::Empty;
+                        }
+
+                        // Si hacemos clic sobre una celda vacía,
+                        // entramos en modo dibujar.
+                        else if (grid[row][col] == CellState::Empty)
+                        {
+                            erasingWalls = false;
                             grid[row][col] = CellState::Wall;
                         }
                     }
@@ -132,6 +173,7 @@ int main()
                 if (mouseEvent->button == sf::Mouse::Button::Middle)
                 {
                     drawingWalls = false;
+                    erasingWalls = false;
                 }
             }
 
@@ -147,12 +189,35 @@ int main()
                     if (row >= 0 && row < ROWS &&
                         col >= 0 && col < COLS)
                     {
-                        if (grid[row][col] == CellState::Empty)
+                        // Modo borrar
+                        if (erasingWalls)
                         {
-                            grid[row][col] = CellState::Wall;
+                            if (grid[row][col] == CellState::Wall)
+                            {
+                                grid[row][col] = CellState::Empty;
+                            }
+                        }
+
+                        // Modo dibujar
+                        else
+                        {
+                            if (grid[row][col] == CellState::Empty)
+                            {
+                                grid[row][col] = CellState::Wall;
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        // Ejecutar un paso de A* cada 40 ms
+        if (astar.isRunning())
+        {
+            if (stepClock.getElapsedTime().asMilliseconds() >= 40)
+            {
+                astar.step(grid);
+                stepClock.restart();
             }
         }
 
