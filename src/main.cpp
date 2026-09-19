@@ -5,14 +5,14 @@
 
 #include "AStar.hpp"
 
-// ==============================
-// CONFIGURACION DE LA VENTANA
-// ==============================
+// ============================================================
+// CONFIGURACION
+// ============================================================
 
 const int WINDOW_WIDTH = 800;
 
 const int GRID_HEIGHT = 600;
-const int UI_HEIGHT = 60;
+const int UI_HEIGHT = 90;
 
 const int WINDOW_HEIGHT = GRID_HEIGHT + UI_HEIGHT;
 
@@ -22,11 +22,15 @@ const int COLS = WINDOW_WIDTH / CELL_SIZE;
 const int ROWS = GRID_HEIGHT / CELL_SIZE;
 
 
+// ============================================================
+// MAIN
+// ============================================================
+
 int main()
 {
-    // ==============================
+    // ========================================================
     // VENTANA
-    // ==============================
+    // ========================================================
 
     sf::RenderWindow window(
         sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
@@ -34,32 +38,51 @@ int main()
     );
 
 
-    // ==============================
-    // FUENTE E INTERFAZ
-    // ==============================
+    // ========================================================
+    // FUENTE
+    // ========================================================
 
     sf::Font font("assets/Roboto-Regular.ttf");
 
 
+    // ========================================================
+    // TITULO
+    // ========================================================
+
+    sf::Text titleText(
+        font,
+        "A* PATHFINDING VISUALIZER",
+        20
+    );
+
+    titleText.setPosition({16.f, 12.f});
+
+    titleText.setFillColor(
+        sf::Color(235, 238, 245)
+    );
+
+
+    // ========================================================
+    // CONTROLES
+    // ========================================================
+
     sf::Text controlsText(
         font,
-        "LMB: Start   RMB: Goal   MMB: Walls   SPACE: Run   C: Clear   R: Reset",
-        14
+        "LMB Start  |  RMB Goal  |  MMB Walls  |  SPACE Run  |  C Clear  |  R Reset",
+        13
     );
 
-    controlsText.setPosition({15.f, 8.f});
+    controlsText.setPosition({16.f, 57.f});
 
-
-    sf::Text statusText(
-        font,
-        "STATUS: READY",
-        15
+    controlsText.setFillColor(
+        sf::Color(165, 170, 185)
     );
 
-    statusText.setPosition({15.f, 34.f});
 
+    // ========================================================
+    // BARRA SUPERIOR
+    // ========================================================
 
-    // Barra superior
     sf::RectangleShape uiBar(
         sf::Vector2f(
             static_cast<float>(WINDOW_WIDTH),
@@ -68,12 +91,64 @@ int main()
     );
 
     uiBar.setPosition({0.f, 0.f});
-    uiBar.setFillColor(sf::Color(20, 20, 20));
+
+    uiBar.setFillColor(
+        sf::Color(20, 20, 20)
+    );
 
 
-    // ==============================
+    // ========================================================
+    // SEPARADOR
+    // ========================================================
+
+    sf::RectangleShape separator(
+        sf::Vector2f(
+            static_cast<float>(WINDOW_WIDTH),
+            2.f
+        )
+    );
+
+    separator.setPosition({
+        0.f,
+        static_cast<float>(UI_HEIGHT - 2)
+    });
+
+    separator.setFillColor(
+        sf::Color(55, 60, 72)
+    );
+
+
+    // ========================================================
+    // STATUS
+    // ========================================================
+
+    sf::RectangleShape statusBox(
+        sf::Vector2f(165.f, 34.f)
+    );
+
+    statusBox.setPosition({620.f, 11.f});
+
+    statusBox.setFillColor(
+        sf::Color(35, 39, 48)
+    );
+
+
+    sf::Text statusText(
+        font,
+        "STATUS: READY",
+        14
+    );
+
+    statusText.setPosition({637.f, 19.f});
+
+    statusText.setFillColor(
+        sf::Color(200, 205, 215)
+    );
+
+
+    // ========================================================
     // GRID
-    // ==============================
+    // ========================================================
 
     std::vector<std::vector<CellState>> grid(
         ROWS,
@@ -84,6 +159,10 @@ int main()
     );
 
 
+    // ========================================================
+    // START / GOAL
+    // ========================================================
+
     bool startPlaced = false;
     bool goalPlaced = false;
 
@@ -91,38 +170,38 @@ int main()
     Position goalPosition{-1, -1};
 
 
-    // ==============================
+    // ========================================================
     // MUROS
-    // ==============================
+    // ========================================================
 
     bool drawingWalls = false;
     bool erasingWalls = false;
 
 
-    // ==============================
+    // ========================================================
     // A*
-    // ==============================
+    // ========================================================
 
     AStar astar;
 
     sf::Clock stepClock;
 
 
-    // ==============================
+    // ========================================================
     // LOOP PRINCIPAL
-    // ==============================
+    // ========================================================
 
     while (window.isOpen())
     {
-        // ==============================
+        // ====================================================
         // EVENTOS
-        // ==============================
+        // ====================================================
 
         while (const std::optional event = window.pollEvent())
         {
-            // --------------------------
-            // CERRAR VENTANA
-            // --------------------------
+            // ------------------------------------------------
+            // CERRAR
+            // ------------------------------------------------
 
             if (event->is<sf::Event::Closed>())
             {
@@ -130,16 +209,16 @@ int main()
             }
 
 
-            // ==============================
+            // =================================================
             // TECLADO
-            // ==============================
+            // =================================================
 
             if (const auto* keyEvent =
                     event->getIf<sf::Event::KeyPressed>())
             {
-                // --------------------------
+                // ---------------------------------------------
                 // R -> RESET COMPLETO
-                // --------------------------
+                // ---------------------------------------------
 
                 if (keyEvent->code == sf::Keyboard::Key::R)
                 {
@@ -147,7 +226,8 @@ int main()
                     {
                         for (int col = 0; col < COLS; col++)
                         {
-                            grid[row][col] = CellState::Empty;
+                            grid[row][col] =
+                                CellState::Empty;
                         }
                     }
 
@@ -164,11 +244,12 @@ int main()
                 }
 
 
-                // --------------------------
+                // ---------------------------------------------
                 // SPACE -> EJECUTAR A*
-                // --------------------------
+                // ---------------------------------------------
 
-                if (keyEvent->code == sf::Keyboard::Key::Space)
+                if (keyEvent->code ==
+                    sf::Keyboard::Key::Space)
                 {
                     if (
                         startPlaced &&
@@ -187,23 +268,28 @@ int main()
                 }
 
 
-                // --------------------------
+                // ---------------------------------------------
                 // C -> LIMPIAR BUSQUEDA
-                // --------------------------
+                // ---------------------------------------------
 
-                if (keyEvent->code == sf::Keyboard::Key::C)
+                if (keyEvent->code ==
+                    sf::Keyboard::Key::C)
                 {
                     for (int row = 0; row < ROWS; row++)
                     {
                         for (int col = 0; col < COLS; col++)
                         {
                             if (
-                                grid[row][col] == CellState::Open ||
-                                grid[row][col] == CellState::Closed ||
-                                grid[row][col] == CellState::Path
+                                grid[row][col] ==
+                                    CellState::Open ||
+                                grid[row][col] ==
+                                    CellState::Closed ||
+                                grid[row][col] ==
+                                    CellState::Path
                             )
                             {
-                                grid[row][col] = CellState::Empty;
+                                grid[row][col] =
+                                    CellState::Empty;
                             }
                         }
                     }
@@ -213,15 +299,15 @@ int main()
             }
 
 
-            // ==============================
-            // MOUSE PRESIONADO
-            // ==============================
+            // =================================================
+            // CLICK DEL MOUSE
+            // =================================================
 
             if (const auto* mouseEvent =
-                    event->getIf<sf::Event::MouseButtonPressed>())
+                    event->getIf<
+                        sf::Event::MouseButtonPressed>())
             {
-                // No permitimos modificar el tablero
-                // mientras A* esta ejecutandose
+                // No editar mientras A* esta ejecutandose
                 if (
                     !astar.isRunning() &&
                     mouseEvent->position.y >= UI_HEIGHT
@@ -232,11 +318,17 @@ int main()
                         CELL_SIZE;
 
                     int row =
-                        (mouseEvent->position.y - UI_HEIGHT) /
+                        (
+                            mouseEvent->position.y -
+                            UI_HEIGHT
+                        ) /
                         CELL_SIZE;
 
 
-                    // Verificar limites
+                    // -----------------------------------------
+                    // VERIFICAR LIMITES
+                    // -----------------------------------------
+
                     if (
                         row >= 0 &&
                         row < ROWS &&
@@ -244,9 +336,9 @@ int main()
                         col < COLS
                     )
                     {
-                        // --------------------------
-                        // CLICK IZQUIERDO -> START
-                        // --------------------------
+                        // =====================================
+                        // LMB -> START
+                        // =====================================
 
                         if (
                             mouseEvent->button ==
@@ -270,9 +362,9 @@ int main()
                         }
 
 
-                        // --------------------------
-                        // CLICK DERECHO -> GOAL
-                        // --------------------------
+                        // =====================================
+                        // RMB -> GOAL
+                        // =====================================
 
                         if (
                             mouseEvent->button ==
@@ -296,17 +388,17 @@ int main()
                         }
 
 
-                        // --------------------------
-                        // CLICK CENTRAL -> MUROS
-                        // --------------------------
+                        // =====================================
+                        // MMB -> MUROS
+                        // =====================================
 
                         if (
                             mouseEvent->button ==
                             sf::Mouse::Button::Middle
                         )
                         {
-                            // Click sobre muro:
-                            // comenzar a borrar
+                            // Si inicia sobre muro:
+                            // borrar
                             if (
                                 grid[row][col] ==
                                 CellState::Wall
@@ -319,8 +411,8 @@ int main()
                                     CellState::Empty;
                             }
 
-                            // Click sobre espacio vacio:
-                            // comenzar a dibujar
+                            // Si inicia sobre vacio:
+                            // dibujar
                             else if (
                                 grid[row][col] ==
                                 CellState::Empty
@@ -333,11 +425,12 @@ int main()
                                     CellState::Wall;
                             }
 
-                            // Start, Goal, Path, etc.
-                            // no pueden convertirse en muro
+                            // No alterar Start, Goal,
+                            // Path, Open o Closed
                             else
                             {
                                 drawingWalls = false;
+                                erasingWalls = false;
                             }
                         }
                     }
@@ -345,12 +438,13 @@ int main()
             }
 
 
-            // ==============================
+            // =================================================
             // SOLTAR BOTON CENTRAL
-            // ==============================
+            // =================================================
 
             if (const auto* mouseEvent =
-                    event->getIf<sf::Event::MouseButtonReleased>())
+                    event->getIf<
+                        sf::Event::MouseButtonReleased>())
             {
                 if (
                     mouseEvent->button ==
@@ -363,9 +457,9 @@ int main()
             }
 
 
-            // ==============================
-            // ARRASTRAR MUROS
-            // ==============================
+            // =================================================
+            // ARRASTRAR PARA CREAR / BORRAR MUROS
+            // =================================================
 
             if (const auto* moveEvent =
                     event->getIf<sf::Event::MouseMoved>())
@@ -381,7 +475,10 @@ int main()
                         CELL_SIZE;
 
                     int row =
-                        (moveEvent->position.y - UI_HEIGHT) /
+                        (
+                            moveEvent->position.y -
+                            UI_HEIGHT
+                        ) /
                         CELL_SIZE;
 
 
@@ -392,9 +489,9 @@ int main()
                         col < COLS
                     )
                     {
-                        // --------------------------
-                        // MODO BORRAR
-                        // --------------------------
+                        // -------------------------------------
+                        // BORRAR MUROS
+                        // -------------------------------------
 
                         if (erasingWalls)
                         {
@@ -408,9 +505,9 @@ int main()
                             }
                         }
 
-                        // --------------------------
-                        // MODO DIBUJAR
-                        // --------------------------
+                        // -------------------------------------
+                        // CREAR MUROS
+                        // -------------------------------------
 
                         else
                         {
@@ -429,9 +526,9 @@ int main()
         }
 
 
-        // ==============================
+        // ====================================================
         // EJECUTAR A* PASO A PASO
-        // ==============================
+        // ====================================================
 
         if (astar.isRunning())
         {
@@ -442,52 +539,96 @@ int main()
             )
             {
                 astar.step(grid);
-
                 stepClock.restart();
             }
         }
 
 
-        // ==============================
+        // ====================================================
         // ACTUALIZAR STATUS
-        // ==============================
+        // ====================================================
 
         if (astar.isRunning())
         {
             statusText.setString(
                 "STATUS: SEARCHING..."
             );
+
+            statusText.setFillColor(
+                sf::Color(66, 165, 245)
+            );
+
+            statusBox.setFillColor(
+                sf::Color(25, 55, 85)
+            );
         }
+
         else if (astar.pathFound())
         {
             statusText.setString(
                 "STATUS: PATH FOUND"
             );
+
+            statusText.setFillColor(
+                sf::Color(72, 220, 140)
+            );
+
+            statusBox.setFillColor(
+                sf::Color(25, 70, 52)
+            );
         }
+
+        else if (astar.hasFinished())
+        {
+            statusText.setString(
+                "STATUS: NO SOLUTION"
+            );
+
+            statusText.setFillColor(
+                sf::Color(255, 100, 100)
+            );
+
+            statusBox.setFillColor(
+                sf::Color(80, 35, 40)
+            );
+        }
+
         else
         {
             statusText.setString(
                 "STATUS: READY"
             );
+
+            statusText.setFillColor(
+                sf::Color(200, 205, 215)
+            );
+
+            statusBox.setFillColor(
+                sf::Color(35, 39, 48)
+            );
         }
 
 
-        // ==============================
+        // ====================================================
         // RENDER
-        // ==============================
+        // ====================================================
 
         window.clear(
-            sf::Color(30, 30, 30)
+            sf::Color(18, 20, 25)
         );
 
 
-        // Barra superior
+        // ----------------------------------------------------
+        // BARRA DE INTERFAZ
+        // ----------------------------------------------------
+
         window.draw(uiBar);
+        window.draw(separator);
 
 
-        // ==============================
-        // DIBUJAR CUADRICULA
-        // ==============================
+        // ====================================================
+        // CUADRICULA
+        // ====================================================
 
         for (int row = 0; row < ROWS; row++)
         {
@@ -496,18 +637,17 @@ int main()
                 sf::RectangleShape cell(
                     sf::Vector2f(
                         static_cast<float>(
-                            CELL_SIZE - 1
+                            CELL_SIZE - 2
                         ),
                         static_cast<float>(
-                            CELL_SIZE - 1
+                            CELL_SIZE - 2
                         )
                     )
                 );
 
 
-                // IMPORTANTE:
-                // + UI_HEIGHT mueve el grid
-                // debajo de la barra superior.
+                // Posicion incluyendo el offset
+                // de la barra superior
                 cell.setPosition(
                     sf::Vector2f(
                         static_cast<float>(
@@ -521,53 +661,74 @@ int main()
                 );
 
 
-                // ==============================
-                // COLOR DE CELDA
-                // ==============================
+                // =============================================
+                // COLORES
+                // =============================================
 
                 switch (grid[row][col])
                 {
                     case CellState::Empty:
+                    {
                         cell.setFillColor(
-                            sf::Color(50, 50, 50)
+                            sf::Color(37, 41, 49)
                         );
+
                         break;
+                    }
 
                     case CellState::Start:
+                    {
                         cell.setFillColor(
-                            sf::Color::Green
+                            sf::Color(46, 204, 113)
                         );
+
                         break;
+                    }
 
                     case CellState::Goal:
+                    {
                         cell.setFillColor(
-                            sf::Color::Red
+                            sf::Color(231, 76, 90)
                         );
+
                         break;
+                    }
 
                     case CellState::Wall:
+                    {
                         cell.setFillColor(
-                            sf::Color::Black
+                            sf::Color(12, 15, 20)
                         );
+
                         break;
+                    }
 
                     case CellState::Open:
+                    {
                         cell.setFillColor(
-                            sf::Color(0, 150, 255)
+                            sf::Color(41, 182, 246)
                         );
+
                         break;
+                    }
 
                     case CellState::Closed:
+                    {
                         cell.setFillColor(
-                            sf::Color(100, 100, 255)
+                            sf::Color(92, 107, 192)
                         );
+
                         break;
+                    }
 
                     case CellState::Path:
+                    {
                         cell.setFillColor(
-                            sf::Color::Yellow
+                            sf::Color(255, 202, 40)
                         );
+
                         break;
+                    }
                 }
 
 
@@ -576,13 +737,20 @@ int main()
         }
 
 
-        // ==============================
-        // TEXTO DE INTERFAZ
-        // ==============================
+        // ====================================================
+        // INTERFAZ
+        // ====================================================
 
+        window.draw(titleText);
         window.draw(controlsText);
+
+        window.draw(statusBox);
         window.draw(statusText);
 
+
+        // ====================================================
+        // MOSTRAR FRAME
+        // ====================================================
 
         window.display();
     }
