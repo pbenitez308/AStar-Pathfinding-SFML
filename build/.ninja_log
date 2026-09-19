@@ -1,12 +1,13 @@
 # ninja log v7
-59	3616	8114869974686943	CMakeFiles/AStarPathfinding.dir/src/main.cpp.obj	48b010ea92e0e0de
-3619	5538	8114870010290110	AStarPathfinding.exe	ed207035ba3103c4
-13	549	8114876187642385	build.ninja	6a35783f0e2cf9aa
-13	549	8114876187580325	C:/Users/52331/OneDrive/Documentos/CETI Colomos/6 Semestre/IA y VA/AStar-Pathfinding-SFML/build/cmake_install.cmake	6a35783f0e2cf9aa
-72	661	8114858873562848	CMakeFiles/AStarPathfinding.dir/src/AStar.cpp.obj	4949ff53d287af5f
-22	666	8114876187642385	build.ninja	6a35783f0e2cf9aa
-22	666	8114876187642385	C:/Users/52331/OneDrive/Documentos/CETI Colomos/6 Semestre/IA y VA/AStar-Pathfinding-SFML/build/cmake_install.cmake	6a35783f0e2cf9aa
 11	2735	8114876188503220	CMakeFiles/AStarPathfinding.dir/src/main.cpp.obj	48b010ea92e0e0de
-105	3207	8114876189473806	CMakeFiles/AStarPathfinding.dir/src/Application.cpp.obj	24f67258c7123816
-11	2487	8114877256410939	CMakeFiles/AStarPathfinding.dir/src/Application.cpp.obj	24f67258c7123816
 2489	4410	8114877281187396	AStarPathfinding.exe	c9415d5147138127
+22	666	8114882331287602	build.ninja	6a35783f0e2cf9aa
+22	666	8114882330873784	C:/Users/52331/OneDrive/Documentos/CETI Colomos/6 Semestre/IA y VA/AStar-Pathfinding-SFML/build/cmake_install.cmake	6a35783f0e2cf9aa
+72	661	8114858873562848	CMakeFiles/AStarPathfinding.dir/src/AStar.cpp.obj	4949ff53d287af5f
+11	2487	8114877256410939	CMakeFiles/AStarPathfinding.dir/src/Application.cpp.obj	24f67258c7123816
+24	1073	8114882331287602	build.ninja	6a35783f0e2cf9aa
+24	1073	8114882331287602	C:/Users/52331/OneDrive/Documentos/CETI Colomos/6 Semestre/IA y VA/AStar-Pathfinding-SFML/build/cmake_install.cmake	6a35783f0e2cf9aa
+319	3597	8114882336108096	CMakeFiles/AStarPathfinding.dir/src/Grid.cpp.obj	d410990bd62e69f7
+17	3626	8114882333076740	CMakeFiles/AStarPathfinding.dir/src/main.cpp.obj	48b010ea92e0e0de
+182	3924	8114882334721302	CMakeFiles/AStarPathfinding.dir/src/Application.cpp.obj	24f67258c7123816
+3925	5937	8114882372163411	AStarPathfinding.exe	d7d6024b41c33538

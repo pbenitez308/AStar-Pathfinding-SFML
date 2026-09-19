@@ -60,6 +60,14 @@ build CMakeFiles/AStarPathfinding.dir/src/Application.cpp.obj: CXX_COMPILER__ASt
   OBJECT_FILE_DIR = CMakeFiles\AStarPathfinding.dir\src
   TARGET_SUPPORT_DIR = CMakeFiles\AStarPathfinding.dir
 
+build CMakeFiles/AStarPathfinding.dir/src/Grid.cpp.obj: CXX_COMPILER__AStarPathfinding_unscanned_ C$:/Users/52331/OneDrive/Documentos/CETI$ Colomos/6$ Semestre/IA$ y$ VA/AStar-Pathfinding-SFML/src/Grid.cpp || cmake_object_order_depends_target_AStarPathfinding
+  DEP_FILE = CMakeFiles\AStarPathfinding.dir\src\Grid.cpp.obj.d
+  FLAGS = -std=gnu++17
+  INCLUDES = -I"C:/Users/52331/OneDrive/Documentos/CETI Colomos/6 Semestre/IA y VA/AStar-Pathfinding-SFML/include"
+  OBJECT_DIR = CMakeFiles\AStarPathfinding.dir
+  OBJECT_FILE_DIR = CMakeFiles\AStarPathfinding.dir\src
+  TARGET_SUPPORT_DIR = CMakeFiles\AStarPathfinding.dir
+
 build CMakeFiles/AStarPathfinding.dir/src/AStar.cpp.obj: CXX_COMPILER__AStarPathfinding_unscanned_ C$:/Users/52331/OneDrive/Documentos/CETI$ Colomos/6$ Semestre/IA$ y$ VA/AStar-Pathfinding-SFML/src/AStar.cpp || cmake_object_order_depends_target_AStarPathfinding
   DEP_FILE = CMakeFiles\AStarPathfinding.dir\src\AStar.cpp.obj.d
   FLAGS = -std=gnu++17
@@ -76,7 +84,7 @@ build CMakeFiles/AStarPathfinding.dir/src/AStar.cpp.obj: CXX_COMPILER__AStarPath
 #############################################
 # Link the executable AStarPathfinding.exe
 
-build AStarPathfinding.exe: CXX_EXECUTABLE_LINKER__AStarPathfinding_ CMakeFiles/AStarPathfinding.dir/src/main.cpp.obj CMakeFiles/AStarPathfinding.dir/src/Application.cpp.obj CMakeFiles/AStarPathfinding.dir/src/AStar.cpp.obj | C$:/msys64/ucrt64/lib/libsfml-graphics.dll.a C$:/msys64/ucrt64/lib/libsfml-window.dll.a C$:/msys64/ucrt64/lib/libsfml-system.dll.a
+build AStarPathfinding.exe: CXX_EXECUTABLE_LINKER__AStarPathfinding_ CMakeFiles/AStarPathfinding.dir/src/main.cpp.obj CMakeFiles/AStarPathfinding.dir/src/Application.cpp.obj CMakeFiles/AStarPathfinding.dir/src/Grid.cpp.obj CMakeFiles/AStarPathfinding.dir/src/AStar.cpp.obj | C$:/msys64/ucrt64/lib/libsfml-graphics.dll.a C$:/msys64/ucrt64/lib/libsfml-window.dll.a C$:/msys64/ucrt64/lib/libsfml-system.dll.a
   LINK_LIBRARIES = C:/msys64/ucrt64/lib/libsfml-graphics.dll.a  C:/msys64/ucrt64/lib/libsfml-window.dll.a  C:/msys64/ucrt64/lib/libsfml-system.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\AStarPathfinding.dir
   POST_BUILD = cd .

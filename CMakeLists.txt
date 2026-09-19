@@ -10,6 +10,7 @@ find_package(SFML 3 COMPONENTS Graphics Window System REQUIRED)
 add_executable(AStarPathfinding
     src/main.cpp
     src/Application.cpp
+    src/Grid.cpp
     src/AStar.cpp
 )
 
