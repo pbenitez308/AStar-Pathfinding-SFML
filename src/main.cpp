@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
+#include "AStar.hpp"
+
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 
@@ -8,14 +10,6 @@ const int CELL_SIZE = 40;
 
 const int COLS = WINDOW_WIDTH / CELL_SIZE;
 const int ROWS = WINDOW_HEIGHT / CELL_SIZE;
-
-enum class CellState
-{
-    Empty,
-    Start,
-    Goal,
-    Wall
-};
 
 int main()
 {
@@ -178,7 +172,19 @@ int main()
                     case CellState::Wall:
                         cell.setFillColor(sf::Color::Black);
                         break;
-                }
+
+                    case CellState::Open:
+                        cell.setFillColor(sf::Color(0, 150, 255));
+                        break;
+
+                    case CellState::Closed:
+                        cell.setFillColor(sf::Color(100, 100, 255));
+                        break;
+
+                    case CellState::Path:
+                        cell.setFillColor(sf::Color::Yellow);
+                        break;
+                    }
 
                 window.draw(cell);
             }

@@ -9,6 +9,7 @@ find_package(SFML 3 COMPONENTS Graphics Window System REQUIRED)
 
 add_executable(AStarPathfinding
     src/main.cpp
+    src/AStar.cpp
 )
 
 target_include_directories(AStarPathfinding PRIVATE
